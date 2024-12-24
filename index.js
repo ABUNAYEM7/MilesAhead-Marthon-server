@@ -88,7 +88,7 @@ async function run() {
           registrationCount: marathon.registrationCount,
         },
       };
-      const result = marathonsCollection.updateOne(query, updatedMarathon);
+      const result =await marathonsCollection.updateOne(query, updatedMarathon);
       res.send(result);
     });
 
