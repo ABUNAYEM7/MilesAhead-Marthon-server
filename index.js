@@ -160,6 +160,15 @@ async function run() {
     // get-applied-marathons
     app.get('/my-applied/marathons/:email',async(req,res)=>{
       const email = req.params.email;
+      const search = req.query.search
+      if(search){
+        const filter={title:{
+          $regex : search,
+          $options : 'i'
+        }}
+        const result = await applyMarathonsCollection.find(filter).toArray()
+        res.send(result)
+      }
       const query = {email:email}
       const result = await applyMarathonsCollection.find(query).toArray()
       res.send(result)
