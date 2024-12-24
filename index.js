@@ -50,22 +50,29 @@ async function run() {
       const id = data.jobId;
       const applicantEmail = data.email;
 
-      const filter = {jobId: id,email:applicantEmail}
-      const existingApplication = await applyMarathonsCollection.findOne(filter)
+      const filter = { jobId: id, email: applicantEmail };
+      const existingApplication = await applyMarathonsCollection.findOne(
+        filter
+      );
       // existing registration validation
-      if(existingApplication){
-        return res.status(400).send("You Can't Re Apply On the Applied Marathon")
+      if (existingApplication) {
+        return res
+          .status(400)
+          .send("You Can't Re Apply On the Applied Marathon");
       }
 
       const result = await applyMarathonsCollection.insertOne(data);
 
-      const query = {_id:new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const increaseRegCount = {
         $inc: {
-          registrationCount :1
+          registrationCount: 1,
         },
       };
-      const updatedRegCount = await marathonsCollection.updateOne(query,increaseRegCount)
+      const updatedRegCount = await marathonsCollection.updateOne(
+        query,
+        increaseRegCount
+      );
       res.send(result);
     });
 
@@ -84,27 +91,33 @@ async function run() {
           distance: marathon.distance,
           description: marathon.description,
           image: marathon.image,
-          createdAt: marathon.createdAt,
+          createAt: marathon.createAt,
           registrationCount: marathon.registrationCount,
         },
       };
-      const result =await marathonsCollection.updateOne(query, updatedMarathon);
+      const result = await marathonsCollection.updateOne(
+        query,
+        updatedMarathon
+      );
       res.send(result);
     });
 
     // update-marathon
     app.patch("/update-apply/marathon/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const marathon = req.body;
       const updatedMarathon = {
         $set: {
-          fname :marathon.fname,
-          lname :marathon.lname,
-          number :marathon.number
+          fname: marathon.fname,
+          lname: marathon.lname,
+          number: marathon.number,
         },
       };
-      const result =await applyMarathonsCollection.updateOne(query, updatedMarathon);
+      const result = await applyMarathonsCollection.updateOne(
+        query,
+        updatedMarathon
+      );
       res.send(result);
     });
 
@@ -126,10 +139,24 @@ async function run() {
     // get-six-marathon
     app.get("/marathons", async (req, res) => {
       const allMarathons = req.query.allMarathons;
+      const createDate = req.query.createDate
+      const register = req.query.registerDate
+      console.log(register)
       if (allMarathons) {
-        const allData = await marathonsCollection.find().toArray();
+        let sortQuery 
+        if(createDate){
+          sortQuery={createAt : -1}
+        }
+        else if(register){
+          sortQuery = {
+            registrationStart: -1}
+        }
+        const allData = await marathonsCollection.find().sort(sortQuery).toArray();
         return res.send(allData);
-      } else {
+      } 
+      
+      // for home page limit
+      else {
         const result = await marathonsCollection.find().limit(6).toArray();
         res.send(result);
       }
@@ -158,21 +185,19 @@ async function run() {
     });
 
     // get-applied-marathons
-    app.get('/my-applied/marathons/:email',async(req,res)=>{
+    app.get("/my-applied/marathons/:email", async (req, res) => {
       const email = req.params.email;
-      const search = req.query.search
-      if(search){
-        const filter={title:{
-          $regex : search,
-          $options : 'i'
-        }}
-        const result = await applyMarathonsCollection.find(filter).toArray()
-        res.send(result)
+      const search = req.query.search;
+      let query = { email: email };
+      if (search && search.trim()) {
+        query.title = {
+          $regex: search,
+          $options: "i",
+        };
       }
-      const query = {email:email}
-      const result = await applyMarathonsCollection.find(query).toArray()
-      res.send(result)
-    })
+      const result = await applyMarathonsCollection.find(query).toArray();
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
