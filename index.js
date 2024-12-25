@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const {
   MongoClient,
   ServerApiVersion,
@@ -11,8 +13,16 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+// cors configuration
+const corsConfig = {
+  origin : ['http://localhost:5173'],
+  credentials : true,
+  optionalSuccessStatus : 200
+}
+
+app.use(cors(corsConfig));
 app.use(express.json());
+app.use(cookieParser())
 
 const uri = `mongodb+srv://${process.env.VITE_USER}:${process.env.VITE_PASS}@cluster0.qcus7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -23,6 +33,24 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+// verify token middleWare
+
+const verifyToken=(req,res,next)=>{
+  const token = req.cookies?.token
+  if(!token){
+    return res.status(401).send({message : 'Unauthorize Access'})
+  }
+  
+  jwt.verify(token,process.env.VITE_USER_SECRET,(err,decoded)=>{
+    if(err){
+      return res.status(401).send({message : 'Unauthorize Access'})
+    }
+    req.user = decoded
+  })
+
+  next()
+}
 
 async function run() {
   try {
@@ -35,6 +63,31 @@ async function run() {
     const upcomingCollection = client
       .db("MilesAhead")
       .collection("upcoming-event");
+
+    // jwt-post-route
+    app.post('/jwt',async(req,res)=>{
+      const user = req.body;
+      // create token
+      const token = jwt.sign(user,process.env.VITE_USER_SECRET,{expiresIn : '1d'})
+
+      // set cookie and send response
+      res 
+      .cookie('token',token,{
+        httpOnly :true,
+        secure : process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV ==='production' ? 'none' : 'strict'
+      })
+      .send({success : true})
+    })
+
+    //jwt clear cookie get route
+    app.get('/clearCookie',(req,res)=>{
+      res.clearCookie('token',{
+        maxAge :0,
+        secure : process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV ==='production' ? 'none' : 'strict'
+      }).send({success :true})
+    })
 
     // post-new-marathon
     app.post("/add-marathon", async (req, res) => {
@@ -176,8 +229,12 @@ async function run() {
     });
 
     // get-creator-marathons
-    app.get("/my-marathons/:email", async (req, res) => {
+    app.get("/my-marathons/:email",verifyToken, async (req, res) => {
+      const decodedEmail = req.user?.email
       const email = req.params.email;
+      if(decodedEmail !== email){
+        return res.status(403).send({message : 'Forbidden Access'})
+      }
       const query = { creatorEmail: email };
       const result = await marathonsCollection.find(query).toArray();
       res.send(result);
