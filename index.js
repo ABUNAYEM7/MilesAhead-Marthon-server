@@ -229,8 +229,8 @@ async function run() {
 
     // get-creator-marathons
     app.get("/my-marathons/:email",verifyToken, async (req, res) => {
-      const decodedEmail = req.user?.email
       const email = req.params.email;
+      const decodedEmail = req.user?.email
       if(decodedEmail !== email){
         return res.status(403).send({message : 'Forbidden Access'})
       }
@@ -240,8 +240,12 @@ async function run() {
     });
 
     // get-applied-marathons
-    app.get("/my-applied/marathons/:email", async (req, res) => {
+    app.get("/my-applied/marathons/:email",verifyToken, async (req, res) => {
       const email = req.params.email;
+      const decodedEmail = req.user?.email
+      if(decodedEmail !== email){
+        return res.status(403).send({message : 'Forbidden Access'})
+      }
       const search = req.query.search;
       let query = { email: email };
       if (search && search.trim()) {
@@ -254,10 +258,10 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // await client.close();
   }
