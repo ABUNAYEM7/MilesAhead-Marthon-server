@@ -46,10 +46,9 @@ const verifyToken=(req,res,next)=>{
     if(err){
       return res.status(401).send({message : 'Unauthorize Access'})
     }
-    req.user = decoded
+    req.user = decoded;
+    next()
   })
-
-  next()
 }
 
 async function run() {
