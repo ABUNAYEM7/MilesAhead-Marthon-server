@@ -141,7 +141,6 @@ async function run() {
       const allMarathons = req.query.allMarathons;
       const createDate = req.query.createDate
       const register = req.query.registerDate
-      console.log(register)
       if (allMarathons) {
         let sortQuery 
         if(createDate){
