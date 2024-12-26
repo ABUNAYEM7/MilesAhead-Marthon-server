@@ -235,12 +235,12 @@ async function run() {
     });
 
     // get-marathon-details
-    app.get("/marathons/details/:id",verifyToken, async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await marathonsCollection.findOne(query);
-      res.send(result);
-    });
+    // app.get("/marathons/details/:id",verifyToken, async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const result = await marathonsCollection.findOne(query);
+    //   res.send(result);
+    // });
 
     // get-creator-marathons
     app.get("/my-marathons/:email",verifyToken, async (req, res) => {
