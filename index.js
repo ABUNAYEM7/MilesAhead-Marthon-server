@@ -89,14 +89,14 @@ async function run() {
     })
 
     // post-new-marathon
-    app.post("/add-marathon", async (req, res) => {
+    app.post("/add-marathon",verifyToken, async (req, res) => {
       const marathonData = req.body;
       const result = await marathonsCollection.insertOne(marathonData);
       res.send(result);
     });
 
     // post-applies-marathons
-    app.post("/apply-marathons", async (req, res) => {
+    app.post("/apply-marathons",verifyToken, async (req, res) => {
       const data = req.body;
       // retriever id and email for query
       const id = data.jobId;
@@ -129,7 +129,7 @@ async function run() {
     });
 
     // update-marathon
-    app.patch("/update-marathon/:id", async (req, res) => {
+    app.patch("/update-marathon/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const marathon = req.body;
@@ -155,7 +155,7 @@ async function run() {
     });
 
     // update-marathon
-    app.patch("/update-apply/marathon/:id", async (req, res) => {
+    app.patch("/update-apply/marathon/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const marathon = req.body;
@@ -174,14 +174,14 @@ async function run() {
     });
 
     // delete-marathon
-    app.delete("/delete/my-marathon/:id", async (req, res) => {
+    app.delete("/delete/my-marathon/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await marathonsCollection.deleteOne(filter);
       res.send(result);
     });
     // delete-registration
-    app.delete("/delete/my-registration/:id", async (req, res) => {
+    app.delete("/delete/my-registration/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const result = await applyMarathonsCollection.deleteOne(filter);
@@ -235,7 +235,7 @@ async function run() {
     });
 
     // get-marathon-details
-    app.get("/marathons/details/:id", async (req, res) => {
+    app.get("/marathons/details/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await marathonsCollection.findOne(query);
