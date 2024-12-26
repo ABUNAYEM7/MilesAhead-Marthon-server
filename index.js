@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
@@ -8,19 +9,19 @@ const {
   Collection,
   ObjectId,
 } = require("mongodb");
-require("dotenv").config();
+
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// cors configuration
-const corsConfig = {
+
+
+app.use(cors({
   origin : ['http://localhost:5173','https://milesahead-34c38.web.app'],
   credentials : true,
   optionalSuccessStatus : 200
-}
+}));
 
-app.use(cors(corsConfig));
 app.use(express.json());
 app.use(cookieParser())
 
@@ -80,9 +81,9 @@ async function run() {
     })
 
     //jwt clear cookie get route
-    app.get('/clearCookie',(req,res)=>{
+    app.post('/clearCookie',(req,res)=>{
       res.clearCookie('token',{
-        maxAge :0,
+        httpOnly :true,
         secure : process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV ==='production' ? 'none' : 'strict'
       }).send({success :true})
