@@ -15,7 +15,7 @@ const port = process.env.PORT || 3000;
 
 // cors configuration
 const corsConfig = {
-  origin : ['http://localhost:5173'],
+  origin : ['http://localhost:5173','https://milesahead-34c38.web.app'],
   credentials : true,
   optionalSuccessStatus : 200
 }
@@ -53,7 +53,7 @@ const verifyToken=(req,res,next)=>{
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const marathonsCollection = client.db("MilesAhead").collection("Marathons");
     const applyMarathonsCollection = client
@@ -188,11 +188,16 @@ async function run() {
       res.send(result);
     });
 
-    // get-six-marathon
+    // get-six-marathon/all marathon
     app.get("/marathons", async (req, res) => {
       const allMarathons = req.query.allMarathons;
       const createDate = req.query.createDate
       const register = req.query.registerDate
+      
+      // page and itemPerPage for pagination
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size)
+
       if (allMarathons) {
         let sortQuery 
         if(createDate){
@@ -202,7 +207,11 @@ async function run() {
           sortQuery = {
             registrationStart: -1}
         }
-        const allData = await marathonsCollection.find().sort(sortQuery).toArray();
+
+        const allData = await marathonsCollection.find()
+        .skip(page * size)
+        .limit(size)
+        .sort(sortQuery).toArray();
         return res.send(allData);
       } 
       
@@ -212,6 +221,12 @@ async function run() {
         res.send(result);
       }
     });
+
+    // total data estimatedCount for pagination
+    app.get('/pagination', async(req,res)=>{
+      const result =await marathonsCollection.estimatedDocumentCount()
+      res.send({result})
+    })
 
     // get-upcoming-marathon
     app.get("/upcoming-event", async (req, res) => {
