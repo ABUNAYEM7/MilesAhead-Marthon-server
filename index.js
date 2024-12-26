@@ -193,7 +193,7 @@ async function run() {
       const allMarathons = req.query.allMarathons;
       const createDate = req.query.createDate
       const register = req.query.registerDate
-      
+
       // page and itemPerPage for pagination
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size)
